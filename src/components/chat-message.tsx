@@ -2,17 +2,57 @@
 
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { User, Loader2 } from 'lucide-react';
+import { User, Loader2, Volume2 } from 'lucide-react';
 import { type Message } from '@/lib/types';
 import Image from 'next/image';
 import { BotIcon } from './bot-icon';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 
 interface ChatMessageProps {
   message: Message;
 }
 
 export function ChatMessage({ message }: ChatMessageProps) {
+  const { toast } = useToast();
   const isAssistant = message.role === 'assistant';
+
+  const speak = (text: string) => {
+    if (!('speechSynthesis' in window)) {
+      toast({
+        variant: 'destructive',
+        title: 'Unsupported Feature',
+        description: "Sorry, your browser doesn't support text-to-speech.",
+      });
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'ta-IN';
+    utterance.rate = 1;
+    utterance.pitch = 1;
+
+    const setVoiceAndSpeak = () => {
+      const voices = window.speechSynthesis.getVoices();
+      const tamilVoice = voices.find(
+        (v) => v.lang === 'ta-IN' || v.name.toLowerCase().includes('tamil')
+      );
+      if (tamilVoice) {
+        utterance.voice = tamilVoice;
+      }
+      window.speechSynthesis.speak(utterance);
+    };
+
+    const voices = window.speechSynthesis.getVoices();
+    if (voices.length > 0) {
+      setVoiceAndSpeak();
+    } else {
+      window.speechSynthesis.onvoiceschanged = setVoiceAndSpeak;
+    }
+  };
+
 
   if (message.id === 'typing' || message.id === 'uploading') {
     return (
@@ -75,6 +115,17 @@ export function ChatMessage({ message }: ChatMessageProps) {
         )}
         <p className="whitespace-pre-wrap">{message.content}</p>
       </div>
+      {isAssistant && message.content && (
+         <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 shrink-0"
+            onClick={() => speak(message.content)}
+            aria-label="Speak message"
+          >
+            <Volume2 className="h-4 w-4" />
+          </Button>
+      )}
       {!isAssistant && (
          <Avatar className="h-8 w-8 shrink-0">
           <AvatarFallback className='bg-primary text-primary-foreground'>
