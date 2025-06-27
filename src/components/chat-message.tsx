@@ -8,6 +8,8 @@ import Image from 'next/image';
 import { BotIcon } from './bot-icon';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { useState, useRef } from 'react';
+import { textToSpeech } from '@/ai/flows/text-to-speech-flow';
 
 interface ChatMessageProps {
   message: Message;
@@ -16,40 +18,36 @@ interface ChatMessageProps {
 export function ChatMessage({ message }: ChatMessageProps) {
   const { toast } = useToast();
   const isAssistant = message.role === 'assistant';
+  const [isFetchingAudio, setIsFetchingAudio] = useState(false);
+  const audioRef = useRef<HTMLAudioElement>(null);
 
-  const speak = (text: string) => {
-    if (!('speechSynthesis' in window)) {
-      toast({
-        variant: 'destructive',
-        title: 'Unsupported Feature',
-        description: "Sorry, your browser doesn't support text-to-speech.",
-      });
+
+  const handleSpeak = async (text: string) => {
+    if (isFetchingAudio) return;
+
+    // If audio is already loaded and ready, just play it.
+    if (audioRef.current && audioRef.current.src && audioRef.current.readyState >= 2) {
+      audioRef.current.play();
       return;
     }
 
-    window.speechSynthesis.cancel();
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'ta-IN';
-    utterance.rate = 1;
-    utterance.pitch = 1;
-
-    const setVoiceAndSpeak = () => {
-      const voices = window.speechSynthesis.getVoices();
-      const tamilVoice = voices.find(
-        (v) => v.lang === 'ta-IN' || v.name.toLowerCase().includes('tamil')
-      );
-      if (tamilVoice) {
-        utterance.voice = tamilVoice;
+    setIsFetchingAudio(true);
+    try {
+      const { audioDataUri } = await textToSpeech({ text });
+      if (audioDataUri && audioRef.current) {
+        audioRef.current.src = audioDataUri;
+        audioRef.current.load();
+        await audioRef.current.play();
       }
-      window.speechSynthesis.speak(utterance);
-    };
-
-    const voices = window.speechSynthesis.getVoices();
-    if (voices.length > 0) {
-      setVoiceAndSpeak();
-    } else {
-      window.speechSynthesis.onvoiceschanged = setVoiceAndSpeak;
+    } catch (error) {
+      console.error('Text-to-speech failed:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Macha, ennala pesa mudila.',
+        description: 'Could not generate the voice. Please try again.',
+      });
+    } finally {
+      setIsFetchingAudio(false);
     }
   };
 
@@ -115,15 +113,21 @@ export function ChatMessage({ message }: ChatMessageProps) {
         )}
         <p className="whitespace-pre-wrap">{message.content}</p>
       </div>
+      <audio ref={audioRef} className="hidden" />
       {isAssistant && message.content && (
          <Button
             variant="ghost"
             size="icon"
             className="h-8 w-8 shrink-0"
-            onClick={() => speak(message.content)}
+            onClick={() => handleSpeak(message.content)}
+            disabled={isFetchingAudio}
             aria-label="Speak message"
           >
-            <Volume2 className="h-4 w-4" />
+            {isFetchingAudio ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Volume2 className="h-4 w-4" />
+            )}
           </Button>
       )}
       {!isAssistant && (
