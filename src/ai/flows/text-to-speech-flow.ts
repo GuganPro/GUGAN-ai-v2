@@ -57,34 +57,41 @@ const textToSpeechFlow = ai.defineFlow(
     outputSchema: TextToSpeechOutputSchema,
   },
   async ({ text }) => {
-    const { media } = await ai.generate({
-      model: googleAI.model('gemini-2.5-flash-preview-tts'),
-      prompt: text,
-      config: {
-        responseModalities: ['AUDIO'],
-        speechConfig: {
-          voiceConfig: {
-            // Using a different prebuilt voice for better quality
-            prebuiltVoiceConfig: { voiceName: 'Algenib' },
+    try {
+      const { media } = await ai.generate({
+        model: googleAI.model('gemini-2.5-flash-preview-tts'),
+        prompt: text,
+        config: {
+          responseModalities: ['AUDIO'],
+          speechConfig: {
+            voiceConfig: {
+              prebuiltVoiceConfig: { voiceName: 'Algenib' },
+            },
           },
         },
-      },
-    });
+      });
 
-    if (!media) {
-      throw new Error('No audio media was generated.');
+      if (!media) {
+        throw new Error('No audio media was generated.');
+      }
+
+      const audioBuffer = Buffer.from(
+        media.url.substring(media.url.indexOf(',') + 1),
+        'base64'
+      );
+
+      const wavBase64 = await toWav(audioBuffer);
+      
+      return {
+        audioDataUri: `data:audio/wav;base64,${wavBase64}`,
+      };
+    } catch (e: any) {
+      console.error("Text-to-speech flow failed:", e.message);
+      const errorMessage = e.message.toLowerCase();
+      if (errorMessage.includes('api key') || errorMessage.includes('authenticated') || errorMessage.includes('permission denied')) {
+           throw new Error("GOOGLE_API_KEY is missing or invalid. Please add it to your Netlify environment variables and re-deploy.");
+      }
+      throw new Error("The text-to-speech service failed. Please try again.");
     }
-
-    // The media.url is a data URI with base64 encoded PCM data
-    const audioBuffer = Buffer.from(
-      media.url.substring(media.url.indexOf(',') + 1),
-      'base64'
-    );
-
-    const wavBase64 = await toWav(audioBuffer);
-    
-    return {
-      audioDataUri: `data:audio/wav;base64,${wavBase64}`,
-    };
   }
 );
