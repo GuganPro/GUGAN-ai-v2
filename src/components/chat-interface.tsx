@@ -205,11 +205,19 @@ export default function ChatInterface() {
           <BotIcon className="text-3xl text-primary" />
           <h1 className="text-xl font-bold font-headline">Hi i'm Gugan's AI 💖</h1>
         </div>
-        <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
-          <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-          <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-          <span className="sr-only">Toggle theme</span>
-        </Button>
+        <div className="flex items-center gap-2">
+           <Button asChild variant="outline" size="sm">
+              <a href="https://www.buymeacoffee.com/gugan" target="_blank" rel="noopener noreferrer">
+                  <Heart className="mr-2 h-4 w-4" />
+                  Support Me
+              </a>
+            </Button>
+          <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
+            <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+            <span className="sr-only">Toggle theme</span>
+          </Button>
+        </div>
       </header>
       <main className="flex-1 flex flex-col min-h-0">
         <div className="p-4 border-b">
@@ -251,7 +259,7 @@ export default function ChatInterface() {
               type="button"
               size="icon"
               variant="ghost"
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => fileInput.current?.click()}
               disabled={isLoading || !storage}
               className="h-10 w-10 shrink-0"
               aria-label="Attach image"
