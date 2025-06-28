@@ -82,6 +82,15 @@ export default function ChatInterface() {
   };
   
   const handleImageUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+    if (!storage) {
+      toast({
+        variant: 'destructive',
+        title: 'Firebase Not Configured',
+        description: 'Image upload is disabled. Please add your Firebase keys to the environment variables.',
+      });
+      return;
+    }
+
     if (!e.target.files || e.target.files.length === 0) {
       return;
     }
@@ -243,7 +252,7 @@ export default function ChatInterface() {
               size="icon"
               variant="ghost"
               onClick={() => fileInputRef.current?.click()}
-              disabled={isLoading}
+              disabled={isLoading || !storage}
               className="h-10 w-10 shrink-0"
               aria-label="Attach image"
             >
