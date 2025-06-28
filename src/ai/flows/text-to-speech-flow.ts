@@ -65,7 +65,7 @@ const textToSpeechFlow = ai.defineFlow(
         speechConfig: {
           voiceConfig: {
             // Using a different prebuilt voice for better quality
-            prebuiltVoiceConfig: { voiceName: 'Vega' },
+            prebuiltVoiceConfig: { voiceName: 'Algenib' },
           },
         },
       },
