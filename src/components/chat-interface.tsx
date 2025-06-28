@@ -206,12 +206,6 @@ export default function ChatInterface() {
           <h1 className="text-xl font-bold font-headline">Hi i'm Gugan's AI 💖</h1>
         </div>
         <div className="flex items-center gap-2">
-           <Button asChild variant="outline" size="sm">
-              <a href="https://www.buymeacoffee.com/gugan" target="_blank" rel="noopener noreferrer">
-                  <Heart className="mr-2 h-4 w-4" />
-                  Support Me
-              </a>
-            </Button>
           <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
             <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
             <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
@@ -259,7 +253,7 @@ export default function ChatInterface() {
               type="button"
               size="icon"
               variant="ghost"
-              onClick={() => fileInput.current?.click()}
+              onClick={() => fileInputRef.current?.click()}
               disabled={isLoading || !storage}
               className="h-10 w-10 shrink-0"
               aria-label="Attach image"
