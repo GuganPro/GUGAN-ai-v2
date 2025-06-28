@@ -25,7 +25,6 @@ export function ChatMessage({ message }: ChatMessageProps) {
   const handleSpeak = async (text: string) => {
     if (isFetchingAudio) return;
 
-    // If audio is already loaded and ready, just play it.
     if (audioRef.current && audioRef.current.src && audioRef.current.readyState >= 2) {
       audioRef.current.play();
       return;
@@ -39,12 +38,12 @@ export function ChatMessage({ message }: ChatMessageProps) {
         audioRef.current.load();
         await audioRef.current.play();
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Text-to-speech failed:', error);
       toast({
         variant: 'destructive',
         title: 'Macha, ennala pesa mudila.',
-        description: 'Could not generate the voice. Please try again.',
+        description: error?.message || 'Could not generate the voice. Please try again.',
       });
     } finally {
       setIsFetchingAudio(false);
